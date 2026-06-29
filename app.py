@@ -8,8 +8,8 @@ st.set_page_config(page_title="Детекция ЛЭП", page_icon="⚡", layout
 
 # ПУТИ К МОДЕЛЯМ
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n_fast.pt")
-ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8m_accurate.pt")
+FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n(fast).pt")
+ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo26s(accurate).pt")
 
 # КЭШИРОВАНИЕ МОДЕЛЕЙ (СПАСАЕТ ОПЕРАТИВНУЮ ПАМЯТЬ)
 @st.cache_resource
