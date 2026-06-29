@@ -26,7 +26,7 @@ st.write("Загрузите фотографию изоляторов для а
 st.sidebar.header("Настройки")
 model_choice = st.sidebar.radio(
     "Выберите нейросеть:",
-    ("Быстрая (YOLOv8n)", "Точная (YOLOv8m)")
+    ("Быстрая (YOLOv8n)", "Точная (YOLO26s)")
 )
 model_type = "fast" if "Быстрая" in model_choice else "accurate"
 
