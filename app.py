@@ -5,20 +5,19 @@ import io
 import subprocess
 import time
 import urllib.request
+import sys
 
-# --- DEVOPS_HACK: Запуск FastAPI внутри Streamlit Cloud ---
+# --- DEVOPS_HACK: Улучшенный запуск для Linux Облака ---
 def start_backend():
     try:
-        # Проверяем, отвечает ли FastAPI
         urllib.request.urlopen("http://127.0.0.1:8000/")
-    except:
-        # Если не отвечает, запускаем его скрытым процессом
-        subprocess.Popen(["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"])
-        time.sleep(3) # Ждем 3 секунды, чтобы сервер успел проснуться
+    except Exception:
+        # sys.executable - гарантирует, что мы используем правильный Python в облаке
+        subprocess.Popen([sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"])
+        time.sleep(5) # Даем 5 секунд на запуск тяжелых моделей
 
 start_backend()
 
-# URL FastAPI сервера
 API_URL = "http://127.0.0.1:8000/predict"
 
 st.set_page_config(page_title="Детекция ЛЭП", page_icon="⚡", layout="wide")
