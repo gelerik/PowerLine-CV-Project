@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+streamlit
+python-multipart
+ultralytics
+Pillow
+requests
