@@ -1,12 +1,26 @@
 import streamlit as st
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import io
+import subprocess
+import time
+import urllib.request
+
+# --- DEVOPS_HACK: Запуск FastAPI внутри Streamlit Cloud ---
+def start_backend():
+    try:
+        # Проверяем, отвечает ли FastAPI
+        urllib.request.urlopen("http://127.0.0.1:8000/")
+    except:
+        # Если не отвечает, запускаем его скрытым процессом
+        subprocess.Popen(["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"])
+        time.sleep(3) # Ждем 3 секунды, чтобы сервер успел проснуться
+
+start_backend()
 
 # URL FastAPI сервера
 API_URL = "http://127.0.0.1:8000/predict"
 
-# Настройки страницы Streamlit
 st.set_page_config(page_title="Детекция ЛЭП", page_icon="⚡", layout="wide")
 
 st.title("⚡ Детекция повреждений ЛЭП")
