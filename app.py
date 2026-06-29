@@ -1,46 +1,39 @@
 import streamlit as st
-import requests
 from PIL import Image, ImageDraw
-import io
-import subprocess
-import time
-import urllib.request
-import sys
+from ultralytics import YOLO
+import os
 
-# --- DEVOPS_HACK: Улучшенный запуск для Linux Облака ---
-def start_backend():
-    try:
-        urllib.request.urlopen("http://127.0.0.1:8000/")
-    except Exception:
-        # sys.executable - гарантирует, что мы используем правильный Python в облаке
-        subprocess.Popen([sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"])
-        time.sleep(5) # Даем 5 секунд на запуск тяжелых моделей
-
-start_backend()
-
-API_URL = "http://127.0.0.1:8000/predict"
-
+# Настройки страницы Streamlit
 st.set_page_config(page_title="Детекция ЛЭП", page_icon="⚡", layout="wide")
+
+# ПУТИ К МОДЕЛЯМ
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n_fast.pt")
+ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8m_accurate.pt")
+
+# КЭШИРОВАНИЕ МОДЕЛЕЙ (СПАСАЕТ ОПЕРАТИВНУЮ ПАМЯТЬ)
+@st.cache_resource
+def load_model(model_type):
+    if model_type == "fast":
+        return YOLO(FAST_MODEL_PATH)
+    else:
+        return YOLO(ACCURATE_MODEL_PATH)
 
 st.title("⚡ Детекция повреждений ЛЭП")
 st.write("Загрузите фотографию изоляторов для автоматического анализа дефектов.")
 
-# --- БОКОВАЯ ПАНЕЛЬ (Выбор модели для требования №4) ---
+# БОКОВАЯ ПАНЕЛЬ
 st.sidebar.header("Настройки")
 model_choice = st.sidebar.radio(
     "Выберите нейросеть:",
-    ("Быстрая (YOLOv8n)", "Точная (YOLO26s)")
+    ("Быстрая (YOLOv8n)", "Точная (YOLOv8m)")
 )
-
-# Переводим выбор UI в понятный для API формат
 model_type = "fast" if "Быстрая" in model_choice else "accurate"
 
-# --- ОСНОВНАЯ ОБЛАСТЬ ---
-# Загрузчик файлов
+# ОСНОВНАЯ ОБЛАСТЬ
 uploaded_file = st.file_uploader("Выберите изображение...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Отображаем исходную картинку
     image = Image.open(uploaded_file).convert("RGB")
     
     col1, col2 = st.columns(2)
@@ -48,58 +41,44 @@ if uploaded_file is not None:
         st.subheader("Исходное изображение")
         st.image(image, use_column_width=True)
 
-    # Кнопка для старта анализа
     if st.button("🔍 Анализировать", type="primary", use_container_width=True):
-        with st.spinner('Сеть анализирует изображение...'):
+        with st.spinner(f'Загрузка {model_choice} и анализ...'):
             try:
-                # Отправляем POST запрос на наш FastAPI
-                files = {"file": uploaded_file.getvalue()}
-                data = {"model_type": model_type}
-                response = requests.post(API_URL, files=files, data=data)
+                # Загружаем нужную модель напрямую (без FastAPI)
+                model = load_model(model_type)
                 
-                if response.status_code == 200:
-                    result = response.json()
-                    detections = result["detections"]
-                    
-                    # Инструмент для рисования поверх картинки
-                    draw = ImageDraw.Draw(image)
-                    
-                    # Задаем цвета для разных классов
-                    colors = {
-                        "insulator": "green",
-                        "broken": "red",
-                        "pollution-flashover": "orange"
-                    }
-                    
-                    # Рисуем рамки
-                    for det in detections:
-                        box = det["box"] # [x1, y1, x2, y2]
-                        class_name = det["class_name"]
-                        conf = det["confidence"]
+                # Делаем предсказание
+                results = model.predict(image, conf=0.25)
+                
+                # Рисуем рамки
+                draw = ImageDraw.Draw(image)
+                colors = {"insulator": "green", "broken": "red", "pollution-flashover": "orange"}
+                
+                detections_count = 0
+                
+                for r in results:
+                    for box in r.boxes:
+                        detections_count += 1
+                        class_name = model.names[int(box.cls)]
+                        conf = float(box.conf)
+                        coords = [float(x) for x in box.xyxy[0]]
                         
-                        color = colors.get(class_name, "red") # По умолчанию красный
+                        color = colors.get(class_name, "red")
+                        draw.rectangle(coords, outline=color, width=4)
                         
-                        # Рисуем прямоугольник
-                        draw.rectangle(box, outline=color, width=4)
-                        
-                        # Рисуем подпись
                         label = f"{class_name} {conf:.2f}"
-                        # Рисуем черный фон для текста, чтобы было видно
-                        draw.rectangle([box[0], box[1]-15, box[0]+100, box[1]], fill=color)
-                        draw.text((box[0] + 2, box[1] - 15), label, fill="white")
+                        draw.rectangle([coords[0], coords[1]-15, coords[0]+100, coords[1]], fill=color)
+                        draw.text((coords[0] + 2, coords[1] - 15), label, fill="white")
+                
+                # Показываем результат
+                with col2:
+                    st.subheader("Результат")
+                    st.image(image, use_column_width=True)
                     
-                    # Показываем результат
-                    with col2:
-                        st.subheader(f"Результат (Модель: {result['model_used']})")
-                        st.image(image, use_column_width=True)
+                    if detections_count == 0:
+                        st.success("Дефектов не найдено (или объектов нет).")
+                    else:
+                        st.warning(f"Найдено объектов: {detections_count}")
                         
-                        if len(detections) == 0:
-                            st.success("Дефектов не найдено (или объектов нет).")
-                        else:
-                            st.warning(f"Найдено объектов: {len(detections)}")
-                            
-                else:
-                    st.error(f"Ошибка сервера: {response.text}")
-                    
-            except requests.exceptions.ConnectionError:
-                st.error("❌ Не удалось подключиться к Backend'у. Проверьте, что FastAPI сервер запущен!")
+            except Exception as e:
+                st.error(f"Произошла ошибка при анализе: {str(e)}")
