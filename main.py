@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from ultralytics import YOLO
@@ -6,8 +7,14 @@ from PIL import Image
 
 app = FastAPI(title="Power Line Defect Detection API")
 
-FAST_MODEL_PATH = r"C:\Users\Egor\Desktop\DLS_project\models\yolov8n_fast.pt"
-ACCURATE_MODEL_PATH = r"C:\Users\Egor\Desktop\DLS_project\models\yolo26s(accurate).pt"
+# --- УМНЫЕ ПУТИ (РАБОТАЮТ ВЕЗДЕ) ---
+# Получаем путь к папке, где лежит этот скрипт (main.py)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Склеиваем путь до папки models и самих файлов
+FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n_fast.pt")
+ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8m_accurate.pt")
+# -----------------------------------
 
 # Пустой словарь. Модели загрузятся сюда позже.
 models = {}
@@ -16,10 +23,17 @@ def get_model(model_type: str):
     """Ленивая загрузка: грузим модель только при первом обращении"""
     if model_type not in models:
         print(f"⏳ Загрузка модели '{model_type}' в память... Подождите...")
+        
+        # ДОБАВЛЯЕМ ПРОВЕРКУ, ЧТОБЫ УВИДЕТЬ ОШИБКУ ЕСЛИ ФАЙЛА НЕТ
+        path_to_load = FAST_MODEL_PATH if model_type == "fast" else ACCURATE_MODEL_PATH
+        if not os.path.exists(path_to_load):
+            raise FileNotFoundError(f"Файл модели не найден по пути: {path_to_load}")
+
         if model_type == "fast":
             models["fast"] = YOLO(FAST_MODEL_PATH)
         elif model_type == "accurate":
             models["accurate"] = YOLO(ACCURATE_MODEL_PATH)
+            
         print(f"✅ Модель '{model_type}' успешно загружена!")
         
     return models[model_type]
