@@ -51,19 +51,6 @@ models/
   yolo12L.pt
 ```
 
-## Метрики YOLOv12L по классам
-
-| Класс | mAP50 | mAP50-95 |
-| --- | ---: | ---: |
-| `bad_insulator` | 0.979 | 0.871 |
-| `damaged_insulator` | 0.966 | 0.864 |
-| `nest` | 0.855 | 0.666 |
-| `safety_sign+` | 0.914 | 0.567 |
-| `festoon_insulators` | 0.907 | 0.724 |
-| `traverse` | 0.892 | 0.705 |
-| `vibration_damper` | 0.812 | 0.606 |
-| `polymer_insulators` | 0.742 | 0.445 |
-
 ## Структура проекта
 
 ```text
