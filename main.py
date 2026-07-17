@@ -12,8 +12,9 @@ app = FastAPI(title="Power Line Defect Detection API")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Склеиваем путь до папки models и самих файлов
-FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8n_fast.pt")
-ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolov8m_accurate.pt")
+FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12n.pt")
+MIDDLE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12s.pt")
+ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12L.pt")
 # -----------------------------------
 
 # Пустой словарь. Модели загрузятся сюда позже.
