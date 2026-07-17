@@ -28,10 +28,12 @@ from ultralytics import YOLO
 # КОНСТАНТЫ И ДАННЫЕ
 # =============================================================================
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
+
 MODEL_PATHS = {
-    "YOLOv12n": "C:\\Users\\Egor\\Desktop\\DLS_project\\Backend\\models\\yolo12n.pt",
-    "YOLOv12s": "C:\\Users\\Egor\\Desktop\\DLS_project\\Backend\\models\\yolo12s.pt",
-    "YOLOv12L": "C:\\Users\\Egor\\Desktop\\DLS_project\\Backend\\models\\yolo12L.pt",
+    "YOLOv12n": ROOT_DIR / "models" / "yolo12n.pt",
+    "YOLOv12s": ROOT_DIR / "models" / "yolo12s.pt",
+    "YOLOv12L": ROOT_DIR / "models" / "yolo12L.pt",
 }
 
 MODEL_DESCRIPTIONS = {
