@@ -22,8 +22,6 @@ os.environ.setdefault(
     str(Path(__file__).resolve().parents[1] / ".ultralytics"),
 )
 
-from ultralytics import YOLO
-
 # =============================================================================
 # КОНСТАНТЫ И ДАННЫЕ
 # =============================================================================
@@ -146,8 +144,10 @@ def build_summary_text(counts: dict[str, int]) -> str:
 
 
 @st.cache_resource(show_spinner=False)
-def load_yolo_model(model_path: str) -> YOLO:
+def load_yolo_model(model_path: str) -> Any:
     """Загружает YOLO-модель один раз на выбранный путь весов."""
+    from ultralytics import YOLO
+
     path = Path(model_path)
     if not path.is_file():
         raise FileNotFoundError(f"Файл модели не найден: {path}")
