@@ -7,25 +7,20 @@ from PIL import Image
 
 app = FastAPI(title="Power Line Defect Detection API")
 
-# --- УМНЫЕ ПУТИ (РАБОТАЮТ ВЕЗДЕ) ---
-# Получаем путь к папке, где лежит этот скрипт (main.py)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Склеиваем путь до папки models и самих файлов
+
 FAST_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12n.pt")
 MIDDLE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12s.pt")
 ACCURATE_MODEL_PATH = os.path.join(BASE_DIR, "models", "yolo12L.pt")
-# -----------------------------------
 
-# Пустой словарь. Модели загрузятся сюда позже.
 models = {}
 
 def get_model(model_type: str):
-    """Ленивая загрузка: грузим модель только при первом обращении"""
     if model_type not in models:
         print(f"⏳ Загрузка модели '{model_type}' в память... Подождите...")
         
-        # ДОБАВЛЯЕМ ПРОВЕРКУ, ЧТОБЫ УВИДЕТЬ ОШИБКУ ЕСЛИ ФАЙЛА НЕТ
         path_to_load = FAST_MODEL_PATH if model_type == "fast" else ACCURATE_MODEL_PATH
         if not os.path.exists(path_to_load):
             raise FileNotFoundError(f"Файл модели не найден по пути: {path_to_load}")
@@ -49,17 +44,14 @@ async def predict(
     model_type: str = Form("fast") 
 ):
     try:
-        # Читаем картинку
         image_bytes = await file.read()
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         
         if model_type not in ["fast", "accurate"]:
             return JSONResponse(status_code=400, content={"error": "Используйте 'fast' или 'accurate'"})
         
-        # Получаем модель (если это первый запрос - она загрузится)
         selected_model = get_model(model_type)
         
-        # Делаем предсказание
         results = selected_model.predict(image, conf=0.25)
         
         detections = []

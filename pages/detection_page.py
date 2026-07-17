@@ -1,10 +1,3 @@
-"""
-Страница «Детекция изображения» — Streamlit-приложение
-обнаружения дефектов ЛЭП с помощью YOLO.
-
-Запуск всего приложения: streamlit run app/main_page.py
-"""
-
 import io
 import os
 from collections import Counter
@@ -94,7 +87,7 @@ st.markdown(
 # =============================================================================
 
 def build_detection_table(counts: dict[str, int]) -> pd.DataFrame:
-    """Формирует таблицу обнаруженных объектов с фиксированным порядком классов."""
+
     rows = []
     ordered_classes = ALL_CLASSES + sorted(set(counts) - set(ALL_CLASSES))
     for class_name in ordered_classes:
@@ -111,7 +104,6 @@ def build_detection_table(counts: dict[str, int]) -> pd.DataFrame:
 
 
 def style_detection_table(df: pd.DataFrame) -> Any:
-    """Подсветка строк: опасные — светло-красный, безопасные — светло-зелёный."""
     dangerous_set = set(DANGEROUS_CLASSES)
 
     def highlight_row(row: pd.Series) -> list[str]:
@@ -128,7 +120,7 @@ def style_detection_table(df: pd.DataFrame) -> Any:
 
 
 def build_summary_text(counts: dict[str, int]) -> str:
-    """Формирует текстовую сводку — только классы с count > 0."""
+    
     lines = ["**Обнаружено:**", ""]
     ordered_classes = ALL_CLASSES + sorted(set(counts) - set(ALL_CLASSES))
     for class_name in ordered_classes:
@@ -145,7 +137,6 @@ def build_summary_text(counts: dict[str, int]) -> str:
 
 @st.cache_resource(show_spinner=False)
 def load_yolo_model(model_path: str) -> Any:
-    """Загружает YOLO-модель один раз на выбранный путь весов."""
     from ultralytics import YOLO
 
     path = Path(model_path)
@@ -155,7 +146,6 @@ def load_yolo_model(model_path: str) -> Any:
 
 
 def get_box_color(class_name: str) -> str:
-    """Возвращает цвет рамки для класса."""
     return "#e53935" if class_name in DANGEROUS_CLASSES else "#43a047"
 
 
@@ -165,7 +155,6 @@ def draw_detection_label(
     label: str,
     color: str,
 ) -> None:
-    """Рисует читаемый label над bbox."""
     if not label:
         return
 
@@ -188,7 +177,7 @@ def run_detection(
     show_confidence: bool,
     show_class_names: bool,
 ) -> tuple[Image.Image, dict[str, int], float, list[dict[str, Any]]]:
-    """Выполняет YOLO-инференс и рисует реальные bbox на изображении."""
+
     model = load_yolo_model(MODEL_PATHS[model_name])
     result_image = image.copy().convert("RGB")
     draw = ImageDraw.Draw(result_image)
@@ -238,7 +227,7 @@ def run_detection(
 
 
 def get_available_model_names() -> list[str]:
-    """Возвращает модели, для которых указан существующий файл весов."""
+
     return [
         model_name
         for model_name, model_path in MODEL_PATHS.items()
@@ -247,16 +236,13 @@ def get_available_model_names() -> list[str]:
 
 
 def image_to_bytes(image: Image.Image, fmt: str = "PNG") -> bytes:
-    """Конвертирует PIL-изображение в bytes для st.download_button."""
+
     buffer = io.BytesIO()
     image.save(buffer, format=fmt)
     return buffer.getvalue()
 
 
-# =============================================================================
 # SIDEBAR — НАСТРОЙКИ
-# =============================================================================
-
 with st.sidebar:
     st.header("Настройки")
 
@@ -301,9 +287,7 @@ with st.sidebar:
     )
 
 
-# =============================================================================
 # ОСНОВНАЯ ОБЛАСТЬ — ЗАГОЛОВОК
-# =============================================================================
 
 st.title("🔍 Детекция изображения")
 st.markdown(
@@ -315,9 +299,7 @@ st.markdown(
 st.divider()
 
 
-# =============================================================================
 # ЗАГРУЗКА ИЗОБРАЖЕНИЯ
-# =============================================================================
 
 st.subheader("Загрузка изображения")
 
@@ -340,10 +322,7 @@ if uploaded_file is None:
 st.divider()
 
 
-# =============================================================================
 # ДЕТЕКЦИЯ И ОТОБРАЖЕНИЕ РЕЗУЛЬТАТОВ
-# =============================================================================
-
 if uploaded_file is not None and run_detection_clicked:
     source_image = Image.open(uploaded_file).convert("RGB")
 
@@ -379,7 +358,7 @@ if uploaded_file is not None and run_detection_clicked:
 
     st.divider()
 
-    # --- Метрики ---
+    # Метрики
     total_detected = sum(detection_counts.values())
 
     metric_col1, metric_col2, metric_col3 = st.columns(3)
@@ -394,7 +373,7 @@ if uploaded_file is not None and run_detection_clicked:
 
     st.divider()
 
-    # --- Таблица обнаруженных объектов ---
+    # Таблица обнаруженных объектов
     st.subheader("Обнаруженные объекты")
 
     detection_df = build_detection_table(detection_counts)
@@ -403,7 +382,7 @@ if uploaded_file is not None and run_detection_clicked:
 
     st.divider()
 
-    # --- Итог анализа ---
+    # Итог анализа
     st.subheader("Итог анализа")
 
     with st.container(border=True):
@@ -411,8 +390,7 @@ if uploaded_file is not None and run_detection_clicked:
 
     st.divider()
 
-    # --- Скачивание результата ---
-    # TODO: при необходимости добавить метаданные (JSON) рядом с изображением
+    # Скачивание результата
     st.download_button(
         label="Скачать результат",
         data=image_to_bytes(result_image),

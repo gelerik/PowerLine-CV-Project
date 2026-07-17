@@ -32,7 +32,6 @@ CSV_COLUMNS = [
 
 
 def _ensure_history_dirs() -> None:
-    """Creates the history directory structure if it does not exist."""
     ORIGINAL_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     PREDICTED_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -64,7 +63,6 @@ def _normalize_bbox(bbox: Any) -> list[float]:
 
 
 def _normalize_detection_object(obj: dict[str, Any]) -> dict[str, Any]:
-    """Normalizes one detection object for JSON storage."""
     return {
         "class": obj.get("class") or obj.get("class_name") or obj.get("name") or "",
         "confidence": float(obj.get("confidence", obj.get("conf", 0.0))),
@@ -79,19 +77,7 @@ def save_detection(
     detected_objects: list[dict[str, Any]],
     image_name: str | None = None,
 ) -> str:
-    """
-    Saves a detection record to the file-based history storage.
 
-    Args:
-        original_image: Source image before detection.
-        predicted_image: Image with drawn detection results.
-        model_name: YOLO model name used for inference.
-        detected_objects: List of objects with class/confidence/bbox fields.
-        image_name: Optional original filename from upload.
-
-    Returns:
-        Unique detection ID.
-    """
     _ensure_history_dirs()
 
     detection_id = uuid.uuid4().hex
@@ -140,7 +126,7 @@ def save_detection(
 
 
 def load_history() -> pd.DataFrame:
-    """Loads history.csv as a DataFrame with stable columns."""
+
     if not HISTORY_CSV.is_file():
         return pd.DataFrame(columns=CSV_COLUMNS)
 
@@ -156,7 +142,7 @@ def load_history() -> pd.DataFrame:
 
 
 def clear_history() -> None:
-    """Deletes history.csv, saved images and JSON results."""
+
     if HISTORY_CSV.exists():
         HISTORY_CSV.unlink()
     if (HISTORY_DIR / "images").exists():
@@ -166,14 +152,14 @@ def clear_history() -> None:
 
 
 def export_history() -> bytes:
-    """Returns history.csv contents for Streamlit download buttons."""
+
     if not HISTORY_CSV.is_file():
         return ",".join(CSV_COLUMNS).encode("utf-8")
     return HISTORY_CSV.read_bytes()
 
 
 def get_detection(detection_id: str) -> dict[str, Any]:
-    """Loads one detection JSON by ID."""
+
     result_path = RESULTS_DIR / f"{detection_id}.json"
     if not result_path.is_file():
         return {
@@ -185,5 +171,5 @@ def get_detection(detection_id: str) -> dict[str, Any]:
 
 
 def resolve_history_path(path_value: str) -> Path:
-    """Resolves a path stored in history.csv to an absolute local path."""
+
     return _resolve_history_path(path_value)

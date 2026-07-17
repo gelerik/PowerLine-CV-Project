@@ -12,10 +12,7 @@ from history_manager import (
 )
 
 
-# =============================================================================
 # СТИЛИ
-# =============================================================================
-
 st.markdown(
     """
     <style>
@@ -47,19 +44,16 @@ st.markdown(
 )
 
 
-# =============================================================================
 # ДАННЫЕ И ФИЛЬТРЫ
-# =============================================================================
-
 def format_history_date(value: pd.Timestamp) -> str:
-    """Форматирует дату истории для UI."""
+
     if pd.isna(value):
         return "-"
     return value.strftime("%d.%m.%Y %H:%M")
 
 
 def get_history_size_label(history: pd.DataFrame) -> str:
-    """Возвращает примерный размер файлов истории."""
+    
     total_bytes = 0
     path_columns = ["original_path", "predicted_path", "result_path"]
 
@@ -78,7 +72,7 @@ def get_history_size_label(history: pd.DataFrame) -> str:
 
 
 def show_filters(history: pd.DataFrame) -> tuple[str, str, str]:
-    """Показывает панель фильтров и возвращает выбранные значения."""
+
     model_options = ["Все"] + sorted(
         model for model in history["model"].dropna().unique().tolist() if model
     )
@@ -118,7 +112,7 @@ def apply_filters(
     search_query: str,
     sort_order: str,
 ) -> pd.DataFrame:
-    """Применяет поиск, фильтр по модели и сортировку."""
+
     filtered = history.copy()
 
     if selected_model != "Все":
@@ -142,12 +136,10 @@ def apply_filters(
     return filtered
 
 
-# =============================================================================
-# UI-БЛОКИ
-# =============================================================================
 
+# UI-БЛОКИ
 def build_detection_table(detection: dict) -> pd.DataFrame:
-    """Преобразует JSON детекции в таблицу для Streamlit."""
+    
     rows = []
     for obj in detection.get("objects", []):
         rows.append(
@@ -161,7 +153,7 @@ def build_detection_table(detection: dict) -> pd.DataFrame:
 
 
 def show_detection_details(record: pd.Series) -> None:
-    """Показывает изображение после детекции и таблицу найденных объектов."""
+
     detection = get_detection(str(record["id"]))
     predicted_path = resolve_history_path(str(record["predicted_path"]))
 
@@ -184,7 +176,7 @@ def show_detection_details(record: pd.Series) -> None:
 
 
 def show_history_cards(history: pd.DataFrame) -> None:
-    """Отрисовывает карточки истории детекций."""
+
     if "selected_detection_id" not in st.session_state:
         st.session_state.selected_detection_id = None
 
@@ -224,7 +216,7 @@ def show_history_cards(history: pd.DataFrame) -> None:
 
 
 def show_sidebar(history: pd.DataFrame) -> None:
-    """Показывает sidebar с агрегатами и действиями."""
+
     with st.sidebar:
         st.header("Информация")
 
@@ -252,7 +244,7 @@ def show_sidebar(history: pd.DataFrame) -> None:
 
 
 def show_empty_history() -> None:
-    """Показывает состояние пустой истории."""
+
     st.markdown(
         """
         <div class="empty-history">
@@ -265,7 +257,7 @@ def show_empty_history() -> None:
 
 
 def show_header() -> None:
-    """Показывает заголовок страницы."""
+
     st.title("История детекций")
     st.markdown("На данной странице отображаются все выполненные детекции изображений.")
 
@@ -275,7 +267,7 @@ def show_header() -> None:
 # =============================================================================
 
 def main() -> None:
-    """Точка входа страницы истории детекций."""
+
     history = load_history()
     show_sidebar(history)
     show_header()

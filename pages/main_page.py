@@ -38,9 +38,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# =============================================================================
 # ДАННЫЕ ПРОЕКТА
-# =============================================================================
 
 # Заголовок и описание проекта
 PROJECT_TITLE = "Обнаружение дефектов ЛЭП с помощью YOLO"
@@ -192,7 +190,7 @@ MODEL_OPTIONS = list(CLASS_METRICS_BY_MODEL.keys())
 
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 def render_section_header(title: str) -> None:
-    """Отрисовка заголовка секции с разделительной линией."""
+
     st.markdown(f'<div class="section-header">{title}</div>', unsafe_allow_html=True)
 
 
